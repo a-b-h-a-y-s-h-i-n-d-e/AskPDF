@@ -9,6 +9,27 @@ from transformers import pipeline
 from sentence_transformers import SentenceTransformer, util
 
 
+# some designs
+
+st.markdown(
+    """
+    <h1 style="text-align: center;">
+        <span style="color: white;">Chat with</span> 
+        <span style="color: white; background-color:#1CAC78; padding: 0 10px; border-radius: 5px;">PDF</span>
+    </h1>
+    """,
+    unsafe_allow_html=True,
+)
+st.markdown(
+    """
+    <span style='display: block; text-align: center; color: white; font-size: 22px; margin-top: -10px; margin-bottom: 60px;'>
+        Ask Anything from Your PDFs, Powered by AI.
+    </span>
+    """,
+    unsafe_allow_html=True
+)
+
+
 # this are the models
 qa_pipeline = pipeline("question-answering", model="deepset/roberta-base-squad2")
 embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
@@ -20,7 +41,6 @@ def chunk_text(text, max_length=512):
 
 
 def main():
-    st.title("HEHE")
 
     uploaded_file = st.file_uploader("Upload a PDF file", type=["pdf"])
 
@@ -35,18 +55,20 @@ def main():
         question_input = st.text_input("Ask a question...")
         if question_input:
 
-            chunks = list(chunk_text(extracted_text, max_length=500))
+            with st.spinner("Finding the best answer...."):
 
-            chunk_embeddings = embedding_model.encode(chunks)
-            question_embedding = embedding_model.encode(question_input)
+                chunks = list(chunk_text(extracted_text, max_length=500))
 
-            similarities = util.cos_sim(question_embedding, chunk_embeddings)
-            best_chunk_idx = similarities.argmax()
-            most_relevant_chunk = chunks[best_chunk_idx]
+                chunk_embeddings = embedding_model.encode(chunks)
+                question_embedding = embedding_model.encode(question_input)
 
-            result = qa_pipeline(question=question_input, context=most_relevant_chunk)
+                similarities = util.cos_sim(question_embedding, chunk_embeddings)
+                best_chunk_idx = similarities.argmax()
+                most_relevant_chunk = chunks[best_chunk_idx]
 
-            st.write(result['answer'])
+                result = qa_pipeline(question=question_input, context=most_relevant_chunk)
+
+                st.write(result['answer'])
 
 
 if __name__ == "__main__":
