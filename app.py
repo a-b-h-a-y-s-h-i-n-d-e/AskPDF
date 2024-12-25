@@ -10,6 +10,9 @@ from sentence_transformers import SentenceTransformer, util
 
 
 # some designs
+st.set_page_config(page_title="Ask PDF",
+                   page_icon="./assets/favicon.jpeg", layout="centered")
+
 
 st.markdown(
     """
